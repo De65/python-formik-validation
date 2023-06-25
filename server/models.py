@@ -1,14 +1,37 @@
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy_serializer import SerializerMixin
+#!/usr/bin/env python3
 
-db = SQLAlchemy()
+import email
+from random import choice as rc, randint
 
-class Customer(db.Model, SerializerMixin):
-    __tablename__ = 'customers'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    age = db.Column(db.Integer)
-    email = db.Column(db.String, unique=True)
+from faker import Faker
 
-    def __repr__(self):
-        return f'Customer: {self.name}, age: {self.age}, email: {self.email}'
+from app import app
+from models import db, Customer
+
+
+fake = Faker()
+
+usernames = [fake.first_name() for i in range(4)]
+if "Duane" not in usernames:
+    usernames.append("Duane")
+
+def make_customers():
+
+    Customer.query.delete()
+    
+    customers = []
+
+    for i in range(3):
+        customer = Customer(
+            email=fake.email(),
+            age= randint(0, 125),
+            name=fake.name()
+        )
+        customers.append(customer)
+
+    db.session.add_all(customers)
+    db.session.commit()        
+
+if __name__ == '__main__':
+    with app.app_context():
+        make_customers()
